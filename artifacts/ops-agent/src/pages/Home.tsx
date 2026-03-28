@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Check, Loader2, CheckCircle2, CircleDashed, Sparkles, 
   AlertTriangle, ArrowRight, Download, Mail, Calendar, 
-  Target, TrendingUp, Users, Activity, BarChart4
+  Target, TrendingUp, Users, Activity, BarChart4, ChevronDown
 } from "lucide-react";
 import { useRunAgent } from "@workspace/api-client-react";
 import type { AgentRunResponse } from "@workspace/api-client-react";
@@ -24,6 +24,13 @@ const STEPS = [
   "Cross-referencing account activity signals...",
   "Generating prioritization recommendations...",
   "Drafting GTM plan document..."
+];
+
+const WEEK_OPTIONS = [
+  { label: "Mar 23 – Mar 28, 2026", start: "2026-03-23", end: "2026-03-28" },
+  { label: "Mar 16 – Mar 21, 2026", start: "2026-03-16", end: "2026-03-21" },
+  { label: "Mar 9 – Mar 14, 2026",  start: "2026-03-09", end: "2026-03-14" },
+  { label: "Mar 2 – Mar 7, 2026",   start: "2026-03-02", end: "2026-03-07" },
 ];
 
 const FALLBACK_MOCK_DATA: AgentRunResponse = {
@@ -53,21 +60,22 @@ const FALLBACK_MOCK_DATA: AgentRunResponse = {
   ]
 };
 
-function CustomCheckbox({ label, checked, onChange }: { label: string, checked: boolean, onChange: (c: boolean) => void }) {
+function CustomCheckbox({ label, checked, onChange }: { label: string; checked: boolean; onChange: (c: boolean) => void }) {
   return (
     <div 
       className="flex items-center space-x-3 cursor-pointer group p-3 rounded-xl hover:bg-white/5 transition-colors duration-200 border border-transparent hover:border-white/10"
       onClick={() => onChange(!checked)}
+      data-testid={`checkbox-${label.toLowerCase().replace(/\s+/g, '-')}`}
     >
       <div className={cn(
         "w-5 h-5 flex items-center justify-center rounded-[6px] border-2 transition-all duration-200", 
         checked ? "bg-accent border-accent text-white shadow-lg shadow-accent/40" : "border-white/30 bg-black/20 group-hover:border-white/50"
       )}>
-         {checked && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+        {checked && <Check className="w-3.5 h-3.5 stroke-[3]" />}
       </div>
       <span className="text-sm font-medium text-slate-300 group-hover:text-white transition-colors">{label}</span>
     </div>
-  )
+  );
 }
 
 function RiskBadge({ level }: { level: string }) {
@@ -76,9 +84,7 @@ function RiskBadge({ level }: { level: string }) {
     Medium: "bg-amber-100 text-amber-700 border-amber-200 shadow-amber-500/10",
     Low: "bg-green-100 text-green-700 border-green-200 shadow-green-500/10"
   };
-
-  const colorClass = colors[level] || "bg-slate-100 text-slate-700 border-slate-200";
-
+  const colorClass = colors[level] ?? "bg-slate-100 text-slate-700 border-slate-200";
   return (
     <span className={cn("px-3 py-1 rounded-full text-xs font-bold border shadow-sm", colorClass)}>
       {level}
@@ -87,11 +93,13 @@ function RiskBadge({ level }: { level: string }) {
 }
 
 export default function Home() {
-  const [status, setStatus] = useState<'idle' | 'running' | 'complete'>('complete');
-  const [completedSteps, setCompletedSteps] = useState<number[]>([1,2,3,4,5,6]);
+  const [status, setStatus] = useState<"idle" | "running" | "complete">("complete");
+  const [completedSteps, setCompletedSteps] = useState<number[]>([1, 2, 3, 4, 5, 6]);
   const [currentStep, setCurrentStep] = useState<number>(7);
   const [dataSources, setDataSources] = useState<string[]>(SOURCES);
   const [outputData, setOutputData] = useState<AgentRunResponse>(FALLBACK_MOCK_DATA);
+  const [selectedWeek, setSelectedWeek] = useState(WEEK_OPTIONS[0]);
+  const [weekDropdownOpen, setWeekDropdownOpen] = useState(false);
 
   const { mutateAsync } = useRunAgent();
 
@@ -100,44 +108,41 @@ export default function Home() {
   };
 
   const handleRun = async () => {
-    if (status === 'running') return;
-    setStatus('running');
+    if (status === "running") return;
+    setStatus("running");
     setCompletedSteps([]);
     setCurrentStep(1);
 
-    // Fire API in background
     const apiPromise = mutateAsync({ 
       data: { 
         dataSources, 
-        weekStart: "2026-03-23", 
-        weekEnd: "2026-03-28" 
+        weekStart: selectedWeek.start, 
+        weekEnd: selectedWeek.end 
       } 
-    }).catch(err => {
+    }).catch((err: unknown) => {
       console.warn("API Error (using fallback):", err);
       return FALLBACK_MOCK_DATA;
     });
 
-    // Step animations (simulated thinking time)
     for (let i = 1; i <= 6; i++) {
       setCurrentStep(i);
-      await new Promise(r => setTimeout(r, 900));
+      await new Promise<void>(r => setTimeout(r, 900));
       setCompletedSteps(prev => [...prev, i]);
     }
     setCurrentStep(7);
 
-    // Wait for API to resolve if it's slower than animations
     const result = await apiPromise;
     
     if (result === FALLBACK_MOCK_DATA) {
       toast({ 
         title: "Simulation Complete", 
-        description: "Backend endpoint missing. Showing simulated output data.", 
+        description: "Showing simulated output data.", 
         variant: "default" 
       });
     }
 
     setOutputData(result);
-    setStatus('complete');
+    setStatus("complete");
   };
 
   return (
@@ -158,9 +163,49 @@ export default function Home() {
                 </h1>
                 <p className="text-primary-foreground/70 text-lg md:text-xl font-medium tracking-wide">GTM Planning Automation</p>
               </div>
-              <div className="flex items-center gap-3 bg-white/5 py-3 px-5 rounded-2xl backdrop-blur-md border border-white/10 shadow-inner">
-                <Calendar className="w-5 h-5 text-accent" />
-                <span className="font-semibold text-sm md:text-base tracking-wide text-primary-foreground/90">Current Week: Mar 23 – Mar 28, 2026</span>
+
+              {/* Date Range Picker */}
+              <div className="relative">
+                <button
+                  data-testid="week-picker"
+                  onClick={() => setWeekDropdownOpen(o => !o)}
+                  className="flex items-center gap-3 bg-white/10 hover:bg-white/15 py-3 px-5 rounded-2xl backdrop-blur-md border border-white/20 shadow-inner transition-colors cursor-pointer"
+                >
+                  <Calendar className="w-5 h-5 text-accent shrink-0" />
+                  <span className="font-semibold text-sm md:text-base tracking-wide text-primary-foreground/90 whitespace-nowrap">
+                    {selectedWeek.label}
+                  </span>
+                  <ChevronDown className={cn("w-4 h-4 text-primary-foreground/60 transition-transform", weekDropdownOpen && "rotate-180")} />
+                </button>
+
+                <AnimatePresence>
+                  {weekDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -8, scale: 0.97 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -8, scale: 0.97 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute top-full right-0 mt-2 w-64 bg-white rounded-2xl shadow-2xl shadow-black/20 border border-slate-200 z-50 overflow-hidden"
+                    >
+                      {WEEK_OPTIONS.map(option => (
+                        <button
+                          key={option.start}
+                          data-testid={`week-option-${option.start}`}
+                          onClick={() => { setSelectedWeek(option); setWeekDropdownOpen(false); }}
+                          className={cn(
+                            "w-full text-left px-5 py-3.5 text-sm font-medium transition-colors flex items-center gap-3",
+                            option.start === selectedWeek.start 
+                              ? "bg-primary/5 text-primary font-bold" 
+                              : "text-slate-700 hover:bg-slate-50"
+                          )}
+                        >
+                          <Calendar className="w-4 h-4 shrink-0 text-accent" />
+                          {option.label}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
 
@@ -186,26 +231,26 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row items-center gap-6 mt-4">
               <button
                 onClick={handleRun}
-                disabled={status === 'running'}
+                disabled={status === "running"}
                 data-testid="run-agent-button"
                 className="w-full sm:w-auto h-16 px-10 rounded-2xl bg-white text-primary hover:bg-slate-50 font-bold text-lg shadow-xl shadow-black/20 hover:shadow-2xl hover:-translate-y-1 active:translate-y-0 active:shadow-md transition-all duration-300 flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-xl group"
               >
-                <Sparkles className={cn("w-6 h-6 text-accent group-hover:scale-110 transition-transform", status === 'running' && "animate-pulse")} />
-                {status === 'running' ? 'Agent is reasoning...' : 'Run Weekly GTM Plan'}
+                <Sparkles className={cn("w-6 h-6 text-accent group-hover:scale-110 transition-transform", status === "running" && "animate-pulse")} />
+                {status === "running" ? "Agent is reasoning..." : "Run Weekly GTM Plan"}
               </button>
 
               <div
                 data-testid="agent-status-badge"
                 className={cn(
                   "px-5 py-2.5 rounded-full text-sm font-bold border flex items-center gap-2.5 shadow-sm transition-all duration-300",
-                  status === 'idle' ? "bg-white/10 border-white/20 text-white/80" :
-                  status === 'running' ? "bg-amber-500/20 border-amber-500/50 text-amber-300 animate-pulse" :
+                  status === "idle" ? "bg-white/10 border-white/20 text-white/80" :
+                  status === "running" ? "bg-amber-500/20 border-amber-500/50 text-amber-300 animate-pulse" :
                   "bg-green-500/20 border-green-500/50 text-green-400"
                 )}
               >
-                {status === 'idle' && <CircleDashed className="w-4 h-4" />}
-                {status === 'running' && <Loader2 className="w-4 h-4 animate-spin" />}
-                {status === 'complete' && <CheckCircle2 className="w-4 h-4" />}
+                {status === "idle" && <CircleDashed className="w-4 h-4" />}
+                {status === "running" && <Loader2 className="w-4 h-4 animate-spin" />}
+                {status === "complete" && <CheckCircle2 className="w-4 h-4" />}
                 {status.charAt(0).toUpperCase() + status.slice(1)}
               </div>
             </div>
@@ -214,14 +259,14 @@ export default function Home() {
 
         {/* SECTION 2: AGENT REASONING STEPS */}
         <AnimatePresence>
-          {status !== 'idle' && (
+          {status !== "idle" && (
             <motion.section 
               initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
+              animate={{ opacity: 1, height: "auto" }}
               className="bg-white rounded-3xl p-8 md:p-10 shadow-xl shadow-slate-200/50 border border-slate-200 relative overflow-hidden"
             >
               <h2 className="text-2xl font-display font-bold text-foreground mb-8 flex items-center gap-3">
-                <Loader2 className={cn("w-6 h-6 text-accent", status === 'running' && "animate-spin")} />
+                <Loader2 className={cn("w-6 h-6 text-accent", status === "running" && "animate-spin")} />
                 Agent Reasoning Steps
               </h2>
               
@@ -229,7 +274,7 @@ export default function Home() {
                 {STEPS.map((step, index) => {
                   const stepNum = index + 1;
                   const isComplete = completedSteps.includes(stepNum);
-                  const isActive = currentStep === stepNum && status === 'running';
+                  const isActive = currentStep === stepNum && status === "running";
                   const isPending = !isComplete && !isActive;
 
                   return (
@@ -260,7 +305,7 @@ export default function Home() {
                         {step}
                       </span>
                     </motion.div>
-                  )
+                  );
                 })}
               </div>
             </motion.section>
@@ -269,7 +314,7 @@ export default function Home() {
 
         {/* SECTION 3: AGENT OUTPUT */}
         <AnimatePresence>
-          {status === 'complete' && (
+          {status === "complete" && (
             <motion.section 
               data-testid="output-section"
               initial={{ opacity: 0, y: 40 }}
@@ -281,18 +326,6 @@ export default function Home() {
                 <div>
                   <h2 className="text-3xl font-display font-bold text-foreground">Weekly GTM Plan</h2>
                   <p className="text-muted-foreground font-medium mt-1">{outputData.weekLabel}</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <button data-testid="export-plan-button" className="p-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors tooltip-trigger" title="Export Plan">
-                    <Download className="w-5 h-5" />
-                  </button>
-                  <button data-testid="send-to-team-button" className="p-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors tooltip-trigger" title="Send to Team">
-                    <Mail className="w-5 h-5" />
-                  </button>
-                  <button data-testid="schedule-next-run-button" className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 text-white hover:bg-slate-800 font-semibold shadow-md transition-colors">
-                    <Calendar className="w-4 h-4" />
-                    Schedule Run
-                  </button>
                 </div>
               </div>
 
@@ -383,11 +416,13 @@ export default function Home() {
                     <tbody className="divide-y divide-border">
                       {outputData.actionItems.map((item, i) => (
                         <tr key={i} className="hover:bg-slate-50/50 transition-colors">
-                          <td className="px-6 py-4 font-bold text-slate-900 flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
-                              {item.owner.split(' ').map(n => n[0]).join('')}
+                          <td className="px-6 py-4 font-bold text-slate-900">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
+                                {item.owner.split(" ").map((n: string) => n[0]).join("")}
+                              </div>
+                              {item.owner}
                             </div>
-                            {item.owner}
                           </td>
                           <td className="px-6 py-4 text-slate-700 font-medium">{item.task}</td>
                           <td className="px-6 py-4 text-right">
@@ -401,6 +436,31 @@ export default function Home() {
                     </tbody>
                   </table>
                 </div>
+              </div>
+
+              {/* Bottom Action Buttons */}
+              <div className="flex flex-col sm:flex-row items-center gap-4 pt-4 border-t border-border">
+                <button
+                  data-testid="export-plan-button"
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 font-semibold transition-colors shadow-sm"
+                >
+                  <Download className="w-4 h-4" />
+                  Export Plan
+                </button>
+                <button
+                  data-testid="send-to-team-button"
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 font-semibold transition-colors shadow-sm"
+                >
+                  <Mail className="w-4 h-4" />
+                  Send to Team
+                </button>
+                <button
+                  data-testid="schedule-next-run-button"
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-slate-900 text-white hover:bg-slate-800 font-semibold shadow-md transition-colors"
+                >
+                  <Calendar className="w-4 h-4" />
+                  Schedule Next Run
+                </button>
               </div>
 
             </motion.section>
