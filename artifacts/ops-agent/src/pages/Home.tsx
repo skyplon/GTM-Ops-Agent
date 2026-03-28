@@ -157,11 +157,14 @@ export default function Home() {
           <div className="relative z-10 flex flex-col gap-8">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div>
-                <h1 className="text-4xl md:text-5xl font-display font-bold tracking-tight mb-2 flex items-center gap-3">
-                  <Target className="w-10 h-10 text-accent" />
-                  OpsAgent
+                <div className="flex items-center gap-3 mb-1">
+                  <Target className="w-8 h-8 text-accent shrink-0" />
+                  <span className="text-primary-foreground/60 text-sm font-bold uppercase tracking-widest">OpsAgent</span>
+                </div>
+                <h1 className="text-3xl md:text-4xl font-display font-bold tracking-tight mb-1">
+                  Run Weekly GTM Plan
                 </h1>
-                <p className="text-primary-foreground/70 text-lg md:text-xl font-medium tracking-wide">GTM Planning Automation</p>
+                <p className="text-primary-foreground/60 text-base font-medium tracking-wide">GTM Planning Automation</p>
               </div>
 
               {/* Date Range Picker */}

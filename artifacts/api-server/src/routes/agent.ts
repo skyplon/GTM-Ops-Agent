@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { RunAgentBody } from "@workspace/api-zod";
+import { RunAgentBody, RunAgentResponse } from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
@@ -15,7 +15,7 @@ router.post("/agent/run", (req, res) => {
     ? `Week of ${weekStart} – ${weekEnd}`
     : "Week of Mar 23, 2026";
 
-  res.json({
+  const responseData = {
     weekLabel,
     executiveSummary: [
       { text: "Pipeline coverage remains strong at 3.2x quota, but 4 high-value deals totaling $2.1M are showing disengagement signals requiring immediate attention this week." },
@@ -98,7 +98,10 @@ router.post("/agent/run", (req, res) => {
         dueDate: "Mar 28, 2026",
       },
     ],
-  });
+  };
+
+  const data = RunAgentResponse.parse(responseData);
+  res.json(data);
 });
 
 export default router;
