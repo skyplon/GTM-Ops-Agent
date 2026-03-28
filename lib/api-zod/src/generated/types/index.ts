@@ -6,4 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./actionItem";
+export * from "./agentRunRequest";
+export * from "./agentRunResponse";
+export * from "./campaignAdjustment";
+export * from "./executiveSummaryItem";
 export * from "./healthStatus";
+export * from "./priorityDeal";

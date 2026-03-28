@@ -14,3 +14,44 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * Runs the AI agent to generate a Weekly GTM Plan based on selected data sources
+ * @summary Run the GTM planning agent
+ */
+export const RunAgentBody = zod.object({
+  dataSources: zod.array(zod.string()),
+  weekStart: zod.string().optional(),
+  weekEnd: zod.string().optional(),
+});
+
+export const RunAgentResponse = zod.object({
+  executiveSummary: zod.array(
+    zod.object({
+      text: zod.string(),
+    }),
+  ),
+  priorityDeals: zod.array(
+    zod.object({
+      name: zod.string(),
+      value: zod.string(),
+      risk: zod.string(),
+      recommendedAction: zod.string(),
+    }),
+  ),
+  campaignAdjustments: zod.array(
+    zod.object({
+      campaign: zod.string(),
+      issue: zod.string(),
+      action: zod.string(),
+    }),
+  ),
+  actionItems: zod.array(
+    zod.object({
+      owner: zod.string(),
+      task: zod.string(),
+      dueDate: zod.string(),
+    }),
+  ),
+  weekLabel: zod.string(),
+});

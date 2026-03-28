@@ -1,0 +1,15 @@
+packages:
+  "framer-motion": "Smooth transitions and staggered section reveals"
+  "date-fns": "Human-readable date formatting"
+  "clsx": "Class name composition and merging"
+  "tailwind-merge": "Tailwind utility class merging without conflicts"
+  "class-variance-authority": "Component variants styling"
+  "@radix-ui/react-slot": "Component composition"
+  "@radix-ui/react-toast": "Toast notifications for API states"
+  "lucide-react": "Beautiful consistent icons"
+
+images: []
+
+notes:
+  - "The app initializes with a pre-loaded complete state to showcase functionality immediately."
+  - "API call errors are caught to allow the UI to fallback gracefully to mock data, keeping the visual demo functional even if the backend endpoint is missing or fails."

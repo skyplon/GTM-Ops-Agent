@@ -8,3 +8,40 @@
 export interface HealthStatus {
   status: string;
 }
+
+export interface AgentRunRequest {
+  dataSources: string[];
+  weekStart?: string;
+  weekEnd?: string;
+}
+
+export interface ExecutiveSummaryItem {
+  text: string;
+}
+
+export interface PriorityDeal {
+  name: string;
+  value: string;
+  risk: string;
+  recommendedAction: string;
+}
+
+export interface CampaignAdjustment {
+  campaign: string;
+  issue: string;
+  action: string;
+}
+
+export interface ActionItem {
+  owner: string;
+  task: string;
+  dueDate: string;
+}
+
+export interface AgentRunResponse {
+  executiveSummary: ExecutiveSummaryItem[];
+  priorityDeals: PriorityDeal[];
+  campaignAdjustments: CampaignAdjustment[];
+  actionItems: ActionItem[];
+  weekLabel: string;
+}

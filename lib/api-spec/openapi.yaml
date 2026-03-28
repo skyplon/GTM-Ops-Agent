@@ -1,6 +1,5 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
   description: API specification
@@ -10,6 +9,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: agent
+    description: GTM Agent operations
 paths:
   /healthz:
     get:
@@ -24,6 +25,25 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /agent/run:
+    post:
+      operationId: runAgent
+      tags: [agent]
+      summary: Run the GTM planning agent
+      description: Runs the AI agent to generate a Weekly GTM Plan based on selected data sources
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentRunRequest"
+      responses:
+        "200":
+          description: Agent completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentRunResponse"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +53,92 @@ components:
           type: string
       required:
         - status
-
+    AgentRunRequest:
+      type: object
+      properties:
+        dataSources:
+          type: array
+          items:
+            type: string
+        weekStart:
+          type: string
+        weekEnd:
+          type: string
+      required:
+        - dataSources
+    ExecutiveSummaryItem:
+      type: object
+      properties:
+        text:
+          type: string
+      required:
+        - text
+    PriorityDeal:
+      type: object
+      properties:
+        name:
+          type: string
+        value:
+          type: string
+        risk:
+          type: string
+        recommendedAction:
+          type: string
+      required:
+        - name
+        - value
+        - risk
+        - recommendedAction
+    CampaignAdjustment:
+      type: object
+      properties:
+        campaign:
+          type: string
+        issue:
+          type: string
+        action:
+          type: string
+      required:
+        - campaign
+        - issue
+        - action
+    ActionItem:
+      type: object
+      properties:
+        owner:
+          type: string
+        task:
+          type: string
+        dueDate:
+          type: string
+      required:
+        - owner
+        - task
+        - dueDate
+    AgentRunResponse:
+      type: object
+      properties:
+        executiveSummary:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExecutiveSummaryItem"
+        priorityDeals:
+          type: array
+          items:
+            $ref: "#/components/schemas/PriorityDeal"
+        campaignAdjustments:
+          type: array
+          items:
+            $ref: "#/components/schemas/CampaignAdjustment"
+        actionItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/ActionItem"
+        weekLabel:
+          type: string
+      required:
+        - executiveSummary
+        - priorityDeals
+        - campaignAdjustments
+        - actionItems
+        - weekLabel
