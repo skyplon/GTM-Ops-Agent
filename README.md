@@ -6,7 +6,7 @@ AI-powered GTM planning automation tool for Sales Operations — pulls pipeline 
 
 ## Live Demo
 
-**[https://ops-agent.yourusername.replit.app](https://ops-agent.yourusername.replit.app)**
+**[https://gtm-ops-agent.replit.app/]**
 
 > Replace the link above with your published Replit app URL.
 
@@ -93,6 +93,8 @@ If you have a process manager or use the Replit workspace, both services start a
 
 ---
 
-## License
+## Author
 
-MIT
+**Juan Manuel Navarrete Solano**  
+Senior Product Manager — Agentic AI & Generative AI  
+[LinkedIn](https://www.linkedin.com/in/juanmanuelnavarretesolano/)
